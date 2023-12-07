@@ -20,8 +20,9 @@ def get_cities():
         cities_list = []
         for each in range(len(countries_list)):
             if each%2!=0:
-                cities_list.append(countries_list[each])
-        print(sorted(cities_list))
+                each = countries_list[each].split()
+                cities_list.append(each[0])
+        #print(sorted(cities_list))
         return sorted(cities_list)
 
 def setUpDatabase(db_name):
@@ -30,20 +31,21 @@ def setUpDatabase(db_name):
     cur = conn.cursor()
     return cur, conn
 
-cur, conn = setUpDatabase('capital cities')
-
-
-cur.execute("CREATE TABLE IF NOT EXISTS cities (id NUMBER, city TEXT)")
+cur, conn = setUpDatabase('weather.db')
+cur.execute("CREATE TABLE IF NOT EXISTS cities (id INT PRIMARY KEY, city TEXT)")
 conn.commit()
 
-# cities = get_cities() # returns a list of capital cities
+list_cities = get_cities() # returns a list of capital cities
+#print(list_cities)
 
 cur.execute('SELECT COUNT(*) AS row_count FROM cities')
 row_count = cur.fetchone()[0]
 
-to_insert = cities[row_count:row_count + 1]
-for row in to_insert:
-    cur.execute("INSERT OR IGNORE INTO cities (id, city) VALUES (?, ?)", row)
+
+to_insert = list_cities[row_count:row_count + 25]
+print(to_insert)
+for i in range(len(to_insert)):
+    cur.execute("INSERT OR IGNORE INTO cities (id, city) VALUES (?, ?)", (i, to_insert[i]))
 
 conn.commit()
         
