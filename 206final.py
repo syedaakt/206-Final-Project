@@ -31,7 +31,7 @@ def setUpDatabase(db_name):
     cur = conn.cursor()
     return cur, conn
 
-cur, conn = setUpDatabase('weather')
+cur, conn = setUpDatabase('weather.db')
 cur.execute("CREATE TABLE IF NOT EXISTS coordinates (city TEXT, lat NUMBER, lon NUMBER)")
 conn.commit()
 
