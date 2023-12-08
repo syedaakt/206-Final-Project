@@ -106,14 +106,15 @@ conn.commit()
 
 
 # Create coordinates table
-cur.execute("CREATE TABLE IF NOT EXISTS coordinates (city TEXT, lat NUMBER, lon NUMBER)")
+cur.execute("CREATE TABLE IF NOT EXISTS coordinates (id INT PRIMARY KEY, lat NUMBER, lon NUMBER)")
 conn.commit()
 cur.execute('SELECT COUNT(*) AS row_count FROM coordinates')
 city_coordinates= get_coordinates()
 row_count = cur.fetchone()[0]
-to_insert = city_coordinates[row_count:row_count + 25]
-for row in to_insert:
-    cur.execute("INSERT OR IGNORE INTO coordinates (city, lat, lon) VALUES (?, ?, ?)", row)
+start_index = row_count
+for the_id in city_coordinates[start_index:start_index + 25]:
+    cur.execute("INSERT OR IGNORE INTO coordinates (id, lat, lon) VALUES (?, ?, ?)", (start_index, the_id[1], the_id[2]))
+    start_index += 1
 conn.commit()
 
 #extract_latandlon()
