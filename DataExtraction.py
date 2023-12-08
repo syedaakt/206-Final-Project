@@ -90,7 +90,7 @@ def extract_latandlon():
 
 # Create database name
 cur, conn = setUpDatabase('weather.db')
-
+#lala
 #Create cities table
 cur.execute("CREATE TABLE IF NOT EXISTS cities (id INT PRIMARY KEY, city TEXT)")
 conn.commit()
