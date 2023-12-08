@@ -103,3 +103,85 @@ def aqi_average():
     # print(len(south_west))
 
 aqi_average()
+
+def visualization_salary_data():
+
+# horizontal bar chart
+    x_axis = ['north_east', 'north_west', 'south_east', 'south_west']
+    y_axis = []
+    for avg in aqi_average():
+        y_axis.append(avg)
+
+    plt.figure(figsize = (10,5))
+    plt.subplot (1, 2, 1)
+    plt.bar(x_axis, y_axis)
+    plt.xlabel('Hemisphere')
+    plt.ylabel('Average AQI')
+    
+    # ax1.ticklabel_format(axis = 'x', style='plain')
+    plt.title('AQI Levels of Hemispheres in the World')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+# pie chart
+    x2_axis = ['South America', 'Europe, Africa, Asia']
+    y2_axis = []
+    max = 0
+    min = 5
+    for avg in aqi_average():
+        if avg > max:
+            max = avg
+    y2_axis.append(max)
+    for avg in aqi_average():
+        if avg < min:
+            min = avg
+    y2_axis.append(min)
+
+  
+    plt.subplot(1,2,2)
+    plt.pie(y2_axis, labels=x2_axis, autopct='%1.1f%%')
+    plt.title('AQI Level Based on Hemisphere Quadrant')
+
+    plt.show()
+
+# scatterplot
+    plt.figure()
+
+    cur.execute("SELECT jobs.job_title, employees.salary FROM employees JOIN jobs ON jobs.job_id = employees.job_id")
+
+    res = cur.fetchall()
+
+    x, y = zip(*res)
+
+    # print()
+    # print(x)
+    # print()
+    # print(y)
+
+    # ('President', 'Administration Vice President', 'Administration Vice President', 'Administration Assistant', 'Administration Assistant', 'Administration Vice President', 'Administration Vice President', 'Public Accountant', 'Public Accountant', 'Accountant', 'Administration Assistant', 'Accountant')
+
+    # (24000, 17000, 17000, 6000, 4800, 4800, 4200, 12000, 9000, 8200, 7700, 7800)
+
+    plt.scatter(x,y)
+
+    cur.execute("SELECT jobs.job_title, jobs.min_salary FROM jobs")
+
+    res = cur.fetchall()
+
+    x, y = zip(*res)
+
+    plt.scatter(x, y, color='red', marker='x')
+
+    cur.execute("SELECT jobs.job_title, jobs.max_salary FROM jobs")
+
+    res = cur.fetchall()
+
+    x, y = zip(*res)
+
+    plt.scatter(x, y, color='red', marker='x')
+
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+    plt.show()
+visualization_salary_data()
