@@ -13,7 +13,7 @@ def setUpDatabase(db_name):
     cur = conn.cursor()
     return cur, conn
 
-#get terris list of capitals
+# get terris list of capitals
 def get_cities():
     source_dir = os.path.dirname(__file__)
     fullpath = os.path.join(source_dir, f'SI206--FinalProject--CapitalCities2.html')
@@ -33,7 +33,7 @@ def get_cities():
         # print(sorted(cities_list))
         return sorted(cities_list)
 
-#Create database
+# Create database
 cur, conn = setUpDatabase('weather.db')
 
 #Create cities table
@@ -49,7 +49,7 @@ for i in range(len(to_insert)):
 conn.commit()
 
 
-#Syeda's coordinates from terris capitals
+# Syeda's coordinates from terris capitals
 city_coordinates = [] 
 API_KEY = '466d3d6a8030052dd52e9a49585f562a'
 for city in list_cities: 
@@ -64,7 +64,7 @@ for city in list_cities:
 #print(city_coordinates)
 
 
-#Create coordinates table
+# Create coordinates table
 cur.execute("CREATE TABLE IF NOT EXISTS coordinates (city TEXT, lat NUMBER, lon NUMBER)")
 conn.commit()
 cur.execute('SELECT COUNT(*) AS row_count FROM coordinates')
@@ -74,6 +74,7 @@ for row in to_insert:
     cur.execute("INSERT OR IGNORE INTO coordinates (city, lat, lon) VALUES (?, ?, ?)", row)
 conn.commit()
 
+# Get the latitude and longitude data
 def extract_latandlon():
     cur.execute(
         """
@@ -89,36 +90,12 @@ def extract_latandlon():
 extract_latandlon()
 
 # joys air quality data
-# def aqi_info():
-#     # lat = "1.3521"
-#     # lon = "103.8198"
-#     # count = 0
-#     for coortup in extract_latandlon()[:10]:
-#         api_key = "076da2eb-8d89-4c54-8b3d-9e32d4b01b1f"
-#         lat = str(coortup[0])
-#         lon = str(coortup[1])
-#         # print(lat, lon)
-#         url = f"http://api.airvisual.com/v2/nearest_city?lat={lat}&lon={lon}&key={api_key}"
-#         payload={}
-#         headers = {}
-#         response = requests.request("GET", url, headers=headers, data=payload)
-#         # if response.status_code==200:
-#         info = response.json()
-#         aqi = info['data']['current']['pollution']['aqius']
-#         print(aqi)
-#             # return aqi
-#         # else:
-#             # print('!!!!!!!!!!!!!!!!!!!!!!! NOPE')
-#         # count+=1
-#     # print(count)
-
-# aqi_info()
-
 def aqi_info():
     # lat = "1.3521"
     # lon = "103.8198"
     # count = 0
-    for coortup in extract_latandlon()[6:12]:
+    air_qualities = []
+    for coortup in extract_latandlon():
         api_key = "442aabd8dfc8f8918479da933cc4e5ef"
         lat = coortup[0]
         lon = coortup[1]
@@ -129,40 +106,13 @@ def aqi_info():
         response = requests.get(endpoint)
         if response.status_code==200:
             data = response.json()
-            print(data)
+            aqi = data['list'][0]['main']['aqi']
+            air_qualities.append(aqi)
+            # print(aqi)
         else:
             print(f"Error: {response.status_code} - {response.text}")
-        # headers = {
-        # 'Content-Type': 'application/json',
-        # 'Api-Key': api_key
-        # }
-        # response = requests.get(url, headers=headers)
-        # if response.status_code==200:
-        #     data = response.json()
-        #     if 'results' in data and data['results']:
-        #         result = data['results'][0]
-        #         print(f"Location: {result['location']}")
-        #         print(f"Timestamp: {result['date']['utc']}")
-        #         print(f"PM2.5 Concentration: {result['value']} {result['unit']}")
-        #     else:
-        #         print("No air quality data found for the specified location")
-        # else:
-        #     print(f"Error: {response.status_code} - {response.text}")
-
-
-
-        # payload={}
-        # headers = {}
-        # response = requests.request("GET", url, headers=headers, data=payload)
-        # # if response.status_code==200:
-        # info = response.json()
-        # aqi = info['data']['current']['pollution']['aqius']
-        # print(aqi)
-            # return aqi
-        # else:
-            # print('!!!!!!!!!!!!!!!!!!!!!!! NOPE')
-        # count+=1
-    # print(count)
+    # print(len(air_qualities))
+    return air_qualities
 
 aqi_info()
 
@@ -175,14 +125,40 @@ aqi_info()
 
     
 
+# Extract ID
+# def extract_id():
+#     cur.execute(
+#         """
+#         SELECT cities.id
+#         FROM cities
+#         """
 
-# cur.execute("CREATE TABLE IF NOT EXISTS airQualities (city TEXT, airQuality NUMBER)")
-# conn.commit()
-# cur.execute('SELECT COUNT(*) AS row_count FROM airQualities')
-# row_count = cur.fetchone()[0]
-# to_insert = air_qualities[row_count:row_count + 25]
-# for row in to_insert:
-#     cur.execute("INSERT OR IGNORE INTO airQualities (city, airQuality) VALUES (?, ?)", row)
-# conn.commit()
+#     )
+#     res = cur.fetchall()
+#     conn.commit
+#     return res
+
+# extract_id()
+
+
+cur.execute("CREATE TABLE IF NOT EXISTS airQualities (id INT PRIMARY KEY, aqi NUMBER)")
+conn.commit()
+cur.execute('SELECT COUNT(*) AS row_count FROM airQualities')
+row_count = cur.fetchone()[0]
+to_insert = aqi_info()[row_count:row_count + 25]
+for row in to_insert:
+    cur.execute("INSERT OR IGNORE INTO airQualities (id, aqi) VALUES (?, ?)", row)
+conn.commit()
 
 # print(city_coordinates)
+
+# cur.execute("CREATE TABLE IF NOT EXISTS cities (id INT PRIMARY KEY, city TEXT)")
+# conn.commit()
+# list_cities = get_cities() # returns a list of capital cities
+# cur.execute('SELECT COUNT(*) AS row_count FROM cities')
+# row_count = cur.fetchone()[0]
+# to_insert = list_cities[row_count:row_count + 25]
+# #print(to_insert)
+# for i in range(len(to_insert)):
+#     cur.execute("INSERT OR IGNORE INTO cities (id, city) VALUES (?, ?)", (i, to_insert[i]))
+# conn.commit()
