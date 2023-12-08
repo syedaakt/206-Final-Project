@@ -14,7 +14,8 @@ def setUpDatabase(db_name):
     cur = conn.cursor()
     return cur, conn
 
-# get terris list of capitals
+
+# get list of capitals
 def get_cities():
     source_dir = os.path.dirname(__file__)
     fullpath = os.path.join(source_dir, f'SI206--FinalProject--CapitalCities2.html')
@@ -31,16 +32,16 @@ def get_cities():
             if each%2!=0:
                 each = countries_list[each].split()
                 cities_list.append(each[0])
-        # print(sorted(cities_list))
     return sorted(cities_list)
 
-# Syeda's coordinates from terris capitals
+
+# Get coordinates from list of capitals
 def get_coordinates():
     city_coordinates = [] 
     API_KEY = '466d3d6a8030052dd52e9a49585f562a'
+    list_cities = get_cities()
     for city in list_cities: 
         url = f'http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={API_KEY}'
-        
         r = requests.get(url)
         if r.status_code==200:
             r = r.json()[0]
@@ -49,18 +50,14 @@ def get_coordinates():
         city_coordinates.append((city, r['lat'], r['lon']))
     return city_coordinates
 
-# joys air quality data
-def aqi_info():
-    # lat = "1.3521"
-    # lon = "103.8198"
-    # count = 0
+
+# get air quality of each capital city form 1-5, 5 being the worst
+def aqi_info(res):
     air_qualities = []
-    for coortup in extract_latandlon():
+    for coortup in res:
         api_key = "442aabd8dfc8f8918479da933cc4e5ef"
         lat = coortup[0]
         lon = coortup[1]
-        # coordinates = lat + ',' + lon
-        # print(lat, lon)
         url = f'http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={api_key}'
         endpoint = url.format(lat, lon, api_key)
         response = requests.get(endpoint)
@@ -68,14 +65,42 @@ def aqi_info():
             data = response.json()
             aqi = data['list'][0]['main']['aqi']
             air_qualities.append(aqi)
-            # print(aqi)
         else:
             print(f"Error: {response.status_code} - {response.text}")
-    # print(len(air_qualities))
     return air_qualities
 
-# Get the latitude and longitude data
-def extract_latandlon():
+
+def main():
+    #create database
+    cur, conn = setUpDatabase('weather.db')
+
+    #Create cities table
+    cur.execute("CREATE TABLE IF NOT EXISTS cities (id INT PRIMARY KEY, city TEXT)")
+    conn.commit()
+    list_cities = get_cities()
+    cur.execute('SELECT COUNT(*) AS row_count FROM cities')
+    row_count = cur.fetchone()[0]
+    start_index = row_count
+    for list_value in list_cities[start_index:start_index + 25]:
+        cur.execute("INSERT OR IGNORE INTO cities (id, city) VALUES (?, ?)", (start_index, list_value))
+        start_index += 1
+    conn.commit()
+
+    
+    # Create coordinates table
+    cur.execute("CREATE TABLE IF NOT EXISTS coordinates (id INT PRIMARY KEY, lat NUMBER, lon NUMBER)")
+    conn.commit()
+    cur.execute('SELECT COUNT(*) AS row_count FROM coordinates')
+    city_coordinates= get_coordinates()
+    row_count = cur.fetchone()[0]
+    start_index = row_count
+    for the_id in city_coordinates[start_index:start_index + 25]:
+        cur.execute("INSERT OR IGNORE INTO coordinates (id, lat, lon) VALUES (?, ?, ?)", (start_index, the_id[1], the_id[2]))
+        start_index += 1
+    conn.commit()
+
+    
+    #create table for air qualities
     cur.execute(
         """
         SELECT coordinates.lat, coordinates.lon
@@ -84,50 +109,17 @@ def extract_latandlon():
     )
     res = cur.fetchall()
     conn.commit
-    return res
-    # print(res)
+    cur.execute("CREATE TABLE IF NOT EXISTS airQualities (id INT PRIMARY KEY, aqi NUMBER)")
+    conn.commit()
+    list_aqis = aqi_info(res)
+    cur.execute('SELECT COUNT(*) AS row_count FROM airQualities')
+    row_count = cur.fetchone()[0]
+    start_index = row_count
+    for aqi_value in list_aqis[start_index:start_index + 25]:
+        cur.execute("INSERT OR IGNORE INTO airQualities (id, aqi) VALUES (?, ?)", (start_index, aqi_value))
+        start_index += 1
+    conn.commit()
 
 
-# Create database name
-cur, conn = setUpDatabase('weather.db')
-#lala
-#Create cities table
-cur.execute("CREATE TABLE IF NOT EXISTS cities (id INT PRIMARY KEY, city TEXT)")
-conn.commit()
-list_cities = get_cities() # returns a list of capital cities
-cur.execute('SELECT COUNT(*) AS row_count FROM cities')
-row_count = cur.fetchone()[0]
-#print(to_insert)
-start_index = row_count
-for list_value in list_cities[start_index:start_index + 25]:
-    cur.execute("INSERT OR IGNORE INTO cities (id, city) VALUES (?, ?)", (start_index, list_value))
-    start_index += 1
-conn.commit()
-
-
-# Create coordinates table
-cur.execute("CREATE TABLE IF NOT EXISTS coordinates (id INT PRIMARY KEY, lat NUMBER, lon NUMBER)")
-conn.commit()
-cur.execute('SELECT COUNT(*) AS row_count FROM coordinates')
-city_coordinates= get_coordinates()
-row_count = cur.fetchone()[0]
-start_index = row_count
-for the_id in city_coordinates[start_index:start_index + 25]:
-    cur.execute("INSERT OR IGNORE INTO coordinates (id, lat, lon) VALUES (?, ?, ?)", (start_index, the_id[1], the_id[2]))
-    start_index += 1
-conn.commit()
-
-#extract_latandlon()
-#print(len(aqi_info()))
-
-#create table for air qualities
-cur.execute("CREATE TABLE IF NOT EXISTS airQualities (id INT PRIMARY KEY, aqi NUMBER)")
-conn.commit()
-list_aqis = aqi_info()
-cur.execute('SELECT COUNT(*) AS row_count FROM airQualities')
-row_count = cur.fetchone()[0]
-start_index = row_count
-for aqi_value in list_aqis[start_index:start_index + 25]:
-    cur.execute("INSERT OR IGNORE INTO airQualities (id, aqi) VALUES (?, ?)", (start_index, aqi_value))
-    start_index += 1
-conn.commit()
+if __name__ == '__main__':
+    main()
