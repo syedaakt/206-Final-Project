@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import requests
 import pprint
 
-#set up database      
+# Set up database      
 def setUpDatabase(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+db_name)
@@ -15,7 +15,7 @@ def setUpDatabase(db_name):
     return cur, conn
 
 
-# get list of capitals
+# Get list of capitals
 def get_cities():
     source_dir = os.path.dirname(__file__)
     fullpath = os.path.join(source_dir, f'SI206--FinalProject--CapitalCities2.html')
@@ -51,7 +51,7 @@ def get_coordinates():
     return city_coordinates
 
 
-# get air quality of each capital city form 1-5, 5 being the worst
+# Get air quality of each capital city from 1-5, 5 being the worst
 def aqi_info(res):
     air_qualities = []
     for coortup in res:
@@ -71,7 +71,7 @@ def aqi_info(res):
 
 
 def main():
-    #create database
+    # Create database
     cur, conn = setUpDatabase('weather.db')
 
     #Create cities table
@@ -100,7 +100,7 @@ def main():
     conn.commit()
 
     
-    #create table for air qualities
+    # Create table for air qualities
     cur.execute(
         """
         SELECT coordinates.lat, coordinates.lon
