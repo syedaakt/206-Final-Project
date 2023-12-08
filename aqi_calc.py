@@ -47,23 +47,33 @@ def extract_aqi(cur, conn):
 cur, conn = setUpDatabase()
 extract_aqi(cur, conn)
 
-# # Get the city and it's corresponding ID
-# def extract_cityID(curr, conn):
-#     cur.execute(
-#         """
-#         SELECT cities.city, airQualities.aqi
-#         FROM cities
-#         JOIN airQualities ON cities.id = airQualities.id
-#         WHERE airQualities.id = ?
-#         """
-#         , 
-#     )
-#     city_id = cur.fetchall()
-#     print(city_id)
-#     return city_id
+# Get the city and it's corresponding ID
+def extract_cityID(curr, conn):
+    cur.execute(
+        """
+        SELECT id
+        FROM cities
+        """
+    )
+    res = cur.fetchall()
+    city_id = []
+    for id in res:
+        cur.execute(
+            """
+            SELECT cities.id, cities.city, airQualities.aqi
+            FROM cities
+            JOIN airQualities ON cities.id = airQualities.id
+            WHERE airQualities.id = ?
+            """
+            , (id)
+        )
+        res = cur.fetchall()
+        city_id.append(res[0])
+    print(city_id)
+    return city_id
 
-# cur, conn = setUpDatabase()
-# extract_cityID(cur, conn)
+cur, conn = setUpDatabase()
+extract_cityID(cur, conn)
 
 # Calculate the average AQI based on the city's hemisphere
 def aqi_average():
