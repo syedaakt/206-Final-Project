@@ -28,7 +28,6 @@ def extract_aqi(cur, conn):
     """
     )
     res = cur.fetchall()
-    # print(res)
     all_info = []
     for aqi in res:
         cur.execute(
@@ -40,10 +39,8 @@ def extract_aqi(cur, conn):
         """
         , (aqi)
     )
-        # print(aqi)
         res = cur.fetchall()
         all_info.append(res[0])
-    # print(all_info)
     return all_info
 
 cur, conn = setUpDatabase()
@@ -71,7 +68,6 @@ def extract_cityID(curr, conn):
         )
         res = cur.fetchall()
         city_id.append(res[0])
-    # print(city_id)
     return city_id
 
 cur, conn = setUpDatabase()
@@ -105,16 +101,10 @@ def aqi_average():
     aqi_avg_list.append(sum(south_east)/len(south_east))
     aqi_avg_list.append(sum(south_west)/len(south_west))
 
-    # print(aqi_avg_list)
     return aqi_avg_list
-    # print(list(sum(north_east)/len(north_east), sum(north_west)/len(north_west), sum(south_east)/len(south_east), sum(south_west)/len(south_west)))
-
-    # print(len(north_east))
-    # print(len(north_west))
-    # print(len(south_east))
-    # print(len(south_west))
 
 aqi_average()
+
 
 def visualization_data():
 
