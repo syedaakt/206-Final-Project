@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from bs4 import BeautifulSoup
 import requests
 import pprint
+import numpy as np
+
 
 # Set up database  
 def setUpDatabase():
@@ -69,7 +71,7 @@ def extract_cityID(curr, conn):
         )
         res = cur.fetchall()
         city_id.append(res[0])
-    print(city_id)
+    # print(city_id)
     return city_id
 
 cur, conn = setUpDatabase()
@@ -103,7 +105,7 @@ def aqi_average():
     aqi_avg_list.append(sum(south_east)/len(south_east))
     aqi_avg_list.append(sum(south_west)/len(south_west))
 
-    print(aqi_avg_list)
+    # print(aqi_avg_list)
     return aqi_avg_list
     # print(list(sum(north_east)/len(north_east), sum(north_west)/len(north_west), sum(south_east)/len(south_east), sum(south_west)/len(south_west)))
 
@@ -114,7 +116,7 @@ def aqi_average():
 
 aqi_average()
 
-def visualization_salary_data():
+def visualization_data():
 
 # horizontal bar chart
     x_axis = ['north_east', 'north_west', 'south_east', 'south_west']
@@ -128,70 +130,69 @@ def visualization_salary_data():
     plt.xlabel('Hemisphere')
     plt.ylabel('Average AQI')
     
-    # ax1.ticklabel_format(axis = 'x', style='plain')
     plt.title('AQI Levels of Hemispheres in the World')
     plt.xticks(rotation=45)
     plt.tight_layout()
 
 # pie chart
-    x2_axis = ['South America', 'Europe, Africa, Asia']
-    y2_axis = []
-    max = 0
-    min = 5
-    for avg in aqi_average():
-        if avg > max:
-            max = avg
-    y2_axis.append(max)
-    for avg in aqi_average():
-        if avg < min:
-            min = avg
-    y2_axis.append(min)
+    lvl_1 = 0
+    lvl_2 = 0
+    lvl_3 = 0
+    lvl_4 = 0
+    lvl_5 = 0
 
-  
+    for info in extract_aqi(cur, conn):
+        if info[3] == 1:
+            lvl_1 += 1
+        if info[3] == 2:
+            lvl_2 += 1
+        if info[3] == 3:
+            lvl_3 += 1
+        if info[3] == 4:
+            lvl_4 += 1
+        if info[3] == 5:
+            lvl_5 += 1
+
+    list_lvl = [lvl_1, lvl_2, lvl_3, lvl_4, lvl_5]
+    list_labels = ["AQI: 1", "AQI: 2", "AQI: 3", "AQI: 4", "AQI: 5"]
     plt.subplot(1,2,2)
-    plt.pie(y2_axis, labels=x2_axis, autopct='%1.1f%%')
-    plt.title('AQI Level Based on Hemisphere Quadrant')
+    plt.pie(list_lvl, labels=list_labels, autopct='%1.2f%%')
+    plt.title('Percentage of Cities in Each AQI Level')
 
     plt.show()
 
 # scatterplot
-    plt.figure()
+    plt.figure(figsize=(10,8))
+    city_list = []
+    cities = extract_cityID(cur, conn)
+    for tup in cities:
+        id2 = tup[0]
+        city = tup[1]
+        aqi2 = tup[2]
 
-    cur.execute("SELECT jobs.job_title, employees.salary FROM employees JOIN jobs ON jobs.job_id = employees.job_id")
+        south_west = []
+    
+        for info in extract_aqi(cur, conn):
+            id = info[0]
+            lat = info[1]
+            lon = info[2]
+            aqi = info[3]
+            if lat < 0:
+                if lon < 0:
+                    south_west.append(id)
+        for the_id in south_west:
+            if the_id == id2:
+                city_list.append((city, aqi2))
 
-    res = cur.fetchall()
-
-    x, y = zip(*res)
-
-    # print()
-    # print(x)
-    # print()
-    # print(y)
-
-    # ('President', 'Administration Vice President', 'Administration Vice President', 'Administration Assistant', 'Administration Assistant', 'Administration Vice President', 'Administration Vice President', 'Public Accountant', 'Public Accountant', 'Accountant', 'Administration Assistant', 'Accountant')
-
-    # (24000, 17000, 17000, 6000, 4800, 4800, 4200, 12000, 9000, 8200, 7700, 7800)
-
-    plt.scatter(x,y)
-
-    cur.execute("SELECT jobs.job_title, jobs.min_salary FROM jobs")
-
-    res = cur.fetchall()
-
-    x, y = zip(*res)
-
-    plt.scatter(x, y, color='red', marker='x')
-
-    cur.execute("SELECT jobs.job_title, jobs.max_salary FROM jobs")
-
-    res = cur.fetchall()
-
-    x, y = zip(*res)
-
-    plt.scatter(x, y, color='red', marker='x')
-
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-
+    for plot in city_list:
+        the_city = plot[0]
+        the_aqi = plot[1]
+        
+        plt.subplot()
+        plt.scatter(the_city, the_aqi, color='olive')
+        plt.xticks(rotation=45)
+        plt.title('AQI Levels of Cities in Highest AQI Average Hemisphere (South-West Hemisphere)')
     plt.show()
-visualization_salary_data()
+
+
+visualization_data()
