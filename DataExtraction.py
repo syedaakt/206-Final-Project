@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 from bs4 import BeautifulSoup
 import requests
 import pprint
-      
+
+#set up database      
 def setUpDatabase(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+db_name)
@@ -31,63 +32,22 @@ def get_cities():
                 each = countries_list[each].split()
                 cities_list.append(each[0])
         # print(sorted(cities_list))
-        return sorted(cities_list)
-
-# Create database
-cur, conn = setUpDatabase('weather.db')
-
-#Create cities table
-cur.execute("CREATE TABLE IF NOT EXISTS cities (id INT PRIMARY KEY, city TEXT)")
-conn.commit()
-list_cities = get_cities() # returns a list of capital cities
-cur.execute('SELECT COUNT(*) AS row_count FROM cities')
-row_count = cur.fetchone()[0]
-to_insert = list_cities[row_count:row_count + 25]
-#print(to_insert)
-for i in range(len(to_insert)):
-    cur.execute("INSERT OR IGNORE INTO cities (id, city) VALUES (?, ?)", (i, to_insert[i]))
-conn.commit()
-
+    return sorted(cities_list)
 
 # Syeda's coordinates from terris capitals
-city_coordinates = [] 
-API_KEY = '466d3d6a8030052dd52e9a49585f562a'
-for city in list_cities: 
-    url = f'http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={API_KEY}'
-    
-    r = requests.get(url)
-    if r.status_code==200:
-        r = r.json()[0]
-    else:
-        print('DIDNT WORK')
-    city_coordinates.append((city, r['lat'], r['lon']))
-#print(city_coordinates)
-
-
-# Create coordinates table
-cur.execute("CREATE TABLE IF NOT EXISTS coordinates (city TEXT, lat NUMBER, lon NUMBER)")
-conn.commit()
-cur.execute('SELECT COUNT(*) AS row_count FROM coordinates')
-row_count = cur.fetchone()[0]
-to_insert = city_coordinates[row_count:row_count + 25]
-for row in to_insert:
-    cur.execute("INSERT OR IGNORE INTO coordinates (city, lat, lon) VALUES (?, ?, ?)", row)
-conn.commit()
-
-# Get the latitude and longitude data
-def extract_latandlon():
-    cur.execute(
-        """
-        SELECT coordinates.lat, coordinates.lon
-        FROM coordinates
-        """
-    )
-    res = cur.fetchall()
-    conn.commit
-    return res
-    # print(res)
-
-extract_latandlon()
+def get_coordinates():
+    city_coordinates = [] 
+    API_KEY = '466d3d6a8030052dd52e9a49585f562a'
+    for city in list_cities: 
+        url = f'http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={API_KEY}'
+        
+        r = requests.get(url)
+        if r.status_code==200:
+            r = r.json()[0]
+        else:
+            print('DIDNT WORK')
+        city_coordinates.append((city, r['lat'], r['lon']))
+    return city_coordinates
 
 # joys air quality data
 def aqi_info():
@@ -114,51 +74,56 @@ def aqi_info():
     # print(len(air_qualities))
     return air_qualities
 
-aqi_info()
+# Get the latitude and longitude data
+def extract_latandlon():
+    cur.execute(
+        """
+        SELECT coordinates.lat, coordinates.lon
+        FROM coordinates
+        """
+    )
+    res = cur.fetchall()
+    conn.commit
+    return res
+    # print(res)
 
 
+# Create database name
+cur, conn = setUpDatabase('weather.db')
 
-# air_qualities = []
-# for cords in city_coordinates:
-#     air_qualities.append((cords[0],aqi_info(str(cords[1]), str(cords[2]))))
-#     # print(air_qualities)
+#Create cities table
+cur.execute("CREATE TABLE IF NOT EXISTS cities (id INT PRIMARY KEY, city TEXT)")
+conn.commit()
+list_cities = get_cities() # returns a list of capital cities
+cur.execute('SELECT COUNT(*) AS row_count FROM cities')
+row_count = cur.fetchone()[0]
+to_insert = list_cities[row_count:row_count + 25]
+#print(to_insert)
+for i in range(len(to_insert)):
+    cur.execute("INSERT OR IGNORE INTO cities (id, city) VALUES (?, ?)", (i, to_insert[i]))
+conn.commit()
 
-    
+# Create coordinates table
+cur.execute("CREATE TABLE IF NOT EXISTS coordinates (city TEXT, lat NUMBER, lon NUMBER)")
+conn.commit()
+cur.execute('SELECT COUNT(*) AS row_count FROM coordinates')
+city_coordinates= get_coordinates()
+row_count = cur.fetchone()[0]
+to_insert = city_coordinates[row_count:row_count + 25]
+for row in to_insert:
+    cur.execute("INSERT OR IGNORE INTO coordinates (city, lat, lon) VALUES (?, ?, ?)", row)
+conn.commit()
 
-# Extract ID
-# def extract_id():
-#     cur.execute(
-#         """
-#         SELECT cities.id
-#         FROM cities
-#         """
+#extract_latandlon()
+#print(len(aqi_info()))
 
-#     )
-#     res = cur.fetchall()
-#     conn.commit
-#     return res
-
-# extract_id()
-
-
+#create table for air qualities
 cur.execute("CREATE TABLE IF NOT EXISTS airQualities (id INT PRIMARY KEY, aqi NUMBER)")
 conn.commit()
+list_aqis = aqi_info()
 cur.execute('SELECT COUNT(*) AS row_count FROM airQualities')
 row_count = cur.fetchone()[0]
-to_insert = aqi_info()[row_count:row_count + 25]
-for row in to_insert:
-    cur.execute("INSERT OR IGNORE INTO airQualities (id, aqi) VALUES (?, ?)", row)
+to_insert = list_aqis[row_count:row_count + 25]
+for row in range(len(to_insert)):
+    cur.execute("INSERT OR IGNORE INTO airQualities (id, aqi) VALUES (?, ?)",(row, to_insert[row]))
 conn.commit()
-
-# print(city_coordinates)
-
-# cur.execute("CREATE TABLE IF NOT EXISTS cities (id INT PRIMARY KEY, city TEXT)")
-# conn.commit()
-# list_cities = get_cities() # returns a list of capital cities
-# cur.execute('SELECT COUNT(*) AS row_count FROM cities')
-# row_count = cur.fetchone()[0]
-# to_insert = list_cities[row_count:row_count + 25]
-# #print(to_insert)
-# for i in range(len(to_insert)):
-#     cur.execute("INSERT OR IGNORE INTO cities (id, city) VALUES (?, ?)", (i, to_insert[i]))
-# conn.commit()
