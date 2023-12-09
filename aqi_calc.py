@@ -102,12 +102,6 @@ def aqi_average():
     aqi_avg_list.append(sum(south_west)/len(south_west))
 
     return aqi_avg_list
-<<<<<<< HEAD
-=======
-
-
-
->>>>>>> 34411475ae393076f57d27c8172c0689b3d8b434
 
 def create_barandpie():
 
@@ -185,11 +179,7 @@ def create_scatterplot():
         plt.subplot()
         plt.scatter(the_city, the_aqi, color='olive')
         plt.xticks(rotation=45)
-<<<<<<< HEAD
         plt.title('AQI Levels of Cities in Lowest AQI Average Hemisphere (South-West Hemisphere)')
-=======
-        plt.title('AQI Levels of Cities in Highest AQI Average Hemisphere (South-West Hemisphere)')
->>>>>>> 34411475ae393076f57d27c8172c0689b3d8b434
 
     plt.show()
 
@@ -199,8 +189,4 @@ def main():
     create_scatterplot()
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     main()
-=======
-    main()
->>>>>>> 34411475ae393076f57d27c8172c0689b3d8b434
