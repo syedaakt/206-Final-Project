@@ -102,19 +102,11 @@ def aqi_average():
     aqi_avg_list.append(sum(south_west)/len(south_west))
 
     return aqi_avg_list
-<<<<<<< HEAD
 
 
 
 
 def create_barandpie():
-=======
-
-aqi_average()
-
-
-def visualization_data():
->>>>>>> 410e8d7bfc122fc620e326fddf9de3c7c4b17d71
 
 # horizontal bar chart
     x_axis = ['north_east', 'north_west', 'south_east', 'south_west']
@@ -160,10 +152,7 @@ def visualization_data():
     plt.show()
 
 # scatterplot
-<<<<<<< HEAD
 def create_scatterplot():
-=======
->>>>>>> 410e8d7bfc122fc620e326fddf9de3c7c4b17d71
     plt.figure(figsize=(10,8))
     city_list = []
     cities = extract_cityID(cur, conn)
@@ -194,7 +183,6 @@ def create_scatterplot():
         plt.scatter(the_city, the_aqi, color='olive')
         plt.xticks(rotation=45)
         plt.title('AQI Levels of Cities in Highest AQI Average Hemisphere (South-West Hemisphere)')
-<<<<<<< HEAD
 
     plt.show()
 
@@ -205,9 +193,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-=======
-    plt.show()
-
-
-visualization_data()
->>>>>>> 410e8d7bfc122fc620e326fddf9de3c7c4b17d71
