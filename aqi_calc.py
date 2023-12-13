@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import requests
 import pprint
 import numpy as np
+import csv
 
 
 # Set up database  
@@ -183,10 +184,25 @@ def create_scatterplot():
 
     plt.show()
 
+# Create calculation CSV file
+def create_csv():
+    source_dir = os.path.dirname(__file__)
+    fullpath = os.path.join(source_dir, 'AQI_Calculation.csv')
+    header = ['Northeast Average AQI', 'Northwest Average AQI', 'Southeast Average AQI', 'Southwest Average AQI']
+    data = aqi_average()
+    # for avg in aqi_average():
+    #     data.append([avg])
+    # print(data)
+    with open(fullpath, 'w', encoding="utf-8-sig", newline = "") as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(header)
+        csvwriter.writerow(data)
+
 def main():
     aqi_average()
     create_barandpie()
     create_scatterplot()
+    create_csv()
 
 if __name__ == '__main__':
     main()
